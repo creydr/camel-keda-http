@@ -90,47 +90,6 @@ helm install kube-prometheus-stack oci://ghcr.io/prometheus-community/charts/kub
 header_text "Waiting for Prometheus Operator to become ready"
 kubectl wait deployment --all --timeout=-1s --for=condition=Available --namespace kube-prometheus
 
-header_text "Creating Jaeger Instance"
-kubectl create namespace jaeger
-kubectl apply -f - <<EOF
-apiVersion: opentelemetry.io/v1beta1
-kind: OpenTelemetryCollector
-metadata:
-  name: jaeger-inmemory
-  namespace: jaeger
-spec:
-  image: jaegertracing/jaeger:latest
-  ports:
-  - name: jaeger
-    port: 16686
-  config:
-    service:
-      extensions: [jaeger_storage, jaeger_query]
-      pipelines:
-        traces:
-          receivers: [otlp]
-          exporters: [jaeger_storage_exporter]
-    extensions:
-      jaeger_query:
-        storage:
-          traces: memstore
-      jaeger_storage:
-        backends:
-          memstore:
-            memory:
-              max_traces: 100000
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: "0.0.0.0:4317"
-          http:
-            endpoint: "0.0.0.0:4318"
-    exporters:
-      jaeger_storage_exporter:
-        trace_storage: memstore
-EOF
-
 header_text "Creating Otel Collector"
 kubectl create namespace observability
 kubectl apply -f - <<EOF
@@ -157,16 +116,8 @@ spec:
       prometheus:
         endpoint: "0.0.0.0:8889"
         namespace: default
-      otlp:
-        endpoint: "jaeger-inmemory-collector.jaeger.svc.cluster.local:4317"
-        tls:
-          insecure: true
     service:
       pipelines:
-        traces:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [debug, otlp]
         metrics:
           receivers: [otlp]
           processors: [batch]
@@ -223,26 +174,6 @@ spec:
     access: proxy
     url: http://kube-prometheus-stack-prometheus.kube-prometheus.svc.cluster.local:9090
     isDefault: true
-    jsonData:
-      'tlsSkipVerify': true
-      'timeInterval': "5s"
-EOF
-
-kubectl apply -f - <<EOF
-apiVersion: grafana.integreatly.org/v1beta1
-kind: GrafanaDatasource
-metadata:
-  name: traces
-  namespace: observability
-spec:
-  instanceSelector:
-    matchLabels:
-      dashboards: "grafana"
-  datasource:
-    name: jaeger
-    type: jaeger
-    access: proxy
-    url: http://jaeger-inmemory-collector.jaeger.svc.cluster.local:16686
     jsonData:
       'tlsSkipVerify': true
       'timeInterval': "5s"
