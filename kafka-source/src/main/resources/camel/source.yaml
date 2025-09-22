@@ -1,0 +1,27 @@
+apiVersion: camel.apache.org/v1
+kind: Pipe
+metadata:
+  name: kafka-to-http-pipe
+spec:
+  source:
+    ref:
+      kind: Kamelet
+      apiVersion: camel.apache.org/v1
+      name: kafka-source
+    properties:
+      bootstrapServers: "{{env:KAFKA_BOOTSTRAP_SERVERS}}"
+      topic: "{{env:KAFKA_TOPIC_NAME}}"
+      user: ""
+      password: ""
+      securityProtocol: "PLAINTEXT"
+  sink:
+    ref:
+      kind: Kamelet
+      apiVersion: camel.apache.org/v1
+      name: http-sink
+    properties:
+      url: "{{env:SINK}}"
+      method: POST
+    dataTypes:
+      in:
+        format: http-application-cloudevents

@@ -1,0 +1,38 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: my-topic
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: 3
+  replicas: 1
+  config:
+    retention.ms: 7200000
+    segment.bytes: 1073741824
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: kafka-source
+  name: kafka-source
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kafka-source
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kafka-source
+    spec:
+      containers:
+      - name: kafka-source
+        env:
+        - name: SINK
+          value: "http://event-display.default.svc.cluster.local"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "my-cluster-kafka-bootstrap.kafka:9092"
+        - name: KAFKA_TOPIC_NAME
+          value: "my-topic"
