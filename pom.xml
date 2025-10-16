@@ -35,6 +35,7 @@
 
     <modules>
         <module>kafka-source</module>
+        <module>kafka-sink</module>
     </modules>
 
     <dependencyManagement>
