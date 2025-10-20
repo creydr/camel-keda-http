@@ -1,0 +1,15 @@
+apiVersion: camel.apache.org/v1alpha1
+kind: Kamelet
+metadata:
+  name: platform-http-source
+  labels:
+    camel.apache.org/kamelet.type: "source"
+spec:
+  definition:
+    title: "Platform HTTP Source"
+    description: "Receives HTTP requests from the underlying platform's HTTP server"
+  template:
+    from:
+      uri: "platform-http:/"
+      steps:
+        - to: "kamelet:sink"

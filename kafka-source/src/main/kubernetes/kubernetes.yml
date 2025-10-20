@@ -29,6 +29,7 @@ spec:
     spec:
       containers:
       - name: kafka-source
+        imagePullPolicy: Always
         env:
         - name: SINK
           value: "http://event-display.default.svc.cluster.local"
