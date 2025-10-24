@@ -13,39 +13,39 @@ This project demonstrates two separate Camel applications for interacting with K
     ```
 2.  The `kafka-source` needs a "user application" to send events to. Deploy a simple event-display application for this purpose:
     ```bash
-cat <<-EOF | kubectl apply -f -
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: event-display
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: event-display
-  template:
+    cat <<-EOF | kubectl apply -f -
+    apiVersion: apps/v1
+    kind: Deployment
     metadata:
-      labels:
-        app: event-display
+      name: event-display
     spec:
-      containers:
-        - name: event-display
-          image: gcr.io/knative-releases/knative.dev/eventing/cmd/event_display
-          ports:
-          - containerPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: event-display
-spec:
-  selector:
-    app: event-display
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-EOF
+      replicas: 1
+      selector:
+        matchLabels:
+          app: event-display
+      template:
+        metadata:
+          labels:
+            app: event-display
+        spec:
+          containers:
+            - name: event-display
+              image: gcr.io/knative-releases/knative.dev/eventing/cmd/event_display
+              ports:
+              - containerPort: 8080
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: event-display
+    spec:
+      selector:
+        app: event-display
+      ports:
+        - name: http
+          port: 80
+          targetPort: 8080
+    EOF
     ```
 3.  Build the container images for both applications and push them to the local registry:
     ```bash
